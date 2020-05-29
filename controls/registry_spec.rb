@@ -16,6 +16,7 @@
 # limitations under the License.
 #
 require 'net/http'
+require 'json'
 
 title 'Docker Regitry Security Assessment'
 
@@ -90,7 +91,10 @@ control 'registry-control-04' do
   
   catalog_uri = URI(REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION + "/_catalog")
   response = Net::HTTP.get(catalog_uri)
-  describe command("echo " + response.code) do
+  
+  
+  
+  describe command("echo " + JSON.parse(response)["repositories"][0]) do
 	its("output"){should cmp 'sfsdafasdfdsaf' }
   end
  
