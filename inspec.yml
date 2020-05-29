@@ -1,0 +1,10 @@
+name: docker-registry-security-assessment
+title: Docker Registry Security Assessment
+maintainer: Mikhail Rusakovich
+copyright: Mikhail Rusakovich
+copyright_email: rusakovichma@gmail.com
+license: Apache-2.0
+summary: Test-suite for Docker Registry security best-practices
+version: 1.0.0
+supports:
+- os-family: unix
