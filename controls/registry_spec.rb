@@ -98,31 +98,6 @@ control 'registry-control-04' do
 				its("status") { should_not cmp 200 }
 			end
 			
-			json(content: http(repository_tags_list, ssl_verify: false).body) do |tags_response|
-				tags = tags_response["tags"]
-				
-				tags.each do |tag|
-					repository_tag_manifest = registry_base + "/" + repository + "/manifests/" + tag
-				
-					describe http(repository_tag_manifest, ssl_verify: false) do
-						its("status") { should_not cmp 200 }
-					end
-				
-					json(content: http(repository_tag_manifest, ssl_verify: false).body) do |manifests_response|
-						fsLayers = manifests_response["fsLayers"]
-						
-						fsLayers.each do |fsLayer|
-							image_blob = fsLayer['blobSum'].split(":")[1]
-							repository_blob = registry_base + "/" + repository + "/blobs/sha256:" + image_blob
-							
-							describe http(repository_blob, ssl_verify: false).body do
-								its("status") { should_not cmp 200 }
-							end
-							
-						end
-					end
-				end
-			end
 		end	
 	end
  
