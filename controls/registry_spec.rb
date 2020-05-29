@@ -15,7 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'json'
 
 title 'Docker Regitry Security Assessment'
 
@@ -89,8 +88,8 @@ control 'registry-control-04' do
   desc 'Verify images blobs download'
   
   registry_base = REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION
-  http(registry_base + "/_catalog", ssl_verify: false).body do |repositories_response|
-	repositories = JSON.parse(repositories_response)["repositories"]
+  json(content: http(registry_base + "/_catalog", ssl_verify: false).body) do |repositories_response|
+	repositories = repositories_response["repositories"]
 	
 		repositories.each do |repository|
 			repository_tags_list = registry_base + "/" + repository + "/tags/list"
@@ -99,8 +98,8 @@ control 'registry-control-04' do
 				its("status") { should_not cmp 200 }
 			end
 			
-			http(repository_tags_list, ssl_verify: false).body do |tags_response|
-				tags = JSON.parse(tags_response)["tags"]
+			json(content: http(repository_tags_list, ssl_verify: false).body) do |tags_response|
+				tags = tags_response["tags"]
 				
 				tags.each do |tag|
 					repository_tag_manifest = registry_base + "/" + repository + "/manifests/" + tag
@@ -109,8 +108,8 @@ control 'registry-control-04' do
 						its("status") { should_not cmp 200 }
 					end
 				
-					http(repository_tag_manifest, ssl_verify: false).body do |manifests_response|
-						fsLayers = JSON.parse(tags_response)["fsLayers"]
+					json(content: http(repository_tag_manifest, ssl_verify: false).body) do |manifests_response|
+						fsLayers = manifests_response["fsLayers"]
 						
 						fsLayers.each do |fsLayer|
 							image_blob = fsLayer['blobSum'].split(":")[1]
