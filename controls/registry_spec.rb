@@ -88,12 +88,11 @@ control 'registry-control-04' do
   desc 'Verify images blobs download'
   
   registry_base = REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION
-  json(content: http(registry_base + "/_catalog", ssl_verify: false).body).repositories do |repositories|
-		repositories.each do |repository|
+  json(content: http(registry_base + "/_catalog", ssl_verify: false).body)['repositories', 1] do |repository|
+		
 			describe command("echo " + repository) do
 				its("output") { should cmp "123123" }
 			end
-		end
   end
  
 end
