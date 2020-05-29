@@ -88,7 +88,8 @@ control 'registry-control-04' do
   title 'Verify images blobs download'
   desc 'Verify images blobs download'
   
-  response = Net::HTTP.get(REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION + "/_catalog")
+  catalog_uri = URI(REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION + "/_catalog")
+  response = Net::HTTP.get(catalog_uri)
   describe command("echo " + response.code) do
 	its("output"){should cmp 'sfsdafasdfdsaf' }
   end
