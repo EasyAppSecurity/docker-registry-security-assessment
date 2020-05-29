@@ -34,7 +34,7 @@ REGISTRY_HOST = attribute(
 REGISTRY_PORT = attribute(
   'registry_port',
   description: 'define the registry port',
-  default: '5000'
+  default: 5000
 )
 
 API_VERSION = 'v2'
