@@ -95,7 +95,7 @@ control 'registry-control-04' do
   
   
   describe command("echo " + JSON.parse(response)["repositories"][0]) do
-	its("output"){should cmp 'sfsdafasdfdsaf' }
+	its(:stdout){should cmp 'sfsdafasdfdsaf' }
   end
  
 end
