@@ -62,7 +62,8 @@ control 'registry-control-02' do
   title 'Verify API version endpoint authentication'
   desc 'Verify API version endpoint authentication'
   
-  describe http(REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION + "/", ssl_verify: true) do
+  api_version = REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION + "/"
+  describe http(api_version, ssl_verify: true) do
 	its("status") { should_not cmp 200 }
 	its("status") { should_not cmp 404 }
   end
@@ -74,7 +75,8 @@ control 'registry-control-03' do
   title 'Verify repository Catalog endpoint authentication'
   desc 'Verify repository Catalog endpoint authentication'
   
-  describe http(REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION + "/_catalog", ssl_verify: false) do
+  catalog = REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION + "/_catalog"
+  describe http(catalog, ssl_verify: false) do
 	its("status") { should_not cmp 200 }
   end
   
@@ -89,28 +91,39 @@ control 'registry-control-04' do
   http(registry_base + "/_catalog", ssl_verify: false).body do |repositories_response|
 	repositories = JSON.parse(repositories_response)["repositories"]
 	
-	repositories.each do |repository|
-		http(registry_base + "/" + repository + "/tags/list", ssl_verify: false).body do |tags_response|
-			tags = JSON.parse(tags_response)["tags"]
+		repositories.each do |repository|
+			repository_tags_list = registry_base + "/" + repository + "/tags/list"
 			
-			tags.each do |tag|
-				http(registry_base + "/" + repository + "/manifests/" + tag, ssl_verify: false).body do |manifests_response|
-					fsLayers = JSON.parse(tags_response)["fsLayers"]
-					
-					fsLayers.each do |fsLayer|
-						image_blob = fsLayer['blobSum'].split(":")[1]
+			describe http(repository_tags_list, ssl_verify: false) do
+				its("status") { should_not cmp 200 }
+			end
+			
+			http(repository_tags_list, ssl_verify: false).body do |tags_response|
+				tags = JSON.parse(tags_response)["tags"]
+				
+				tags.each do |tag|
+					repository_tag_manifest = registry_base + "/" + repository + "/manifests/" + tag
+				
+					describe http(repository_tag_manifest, ssl_verify: false) do
+						its("status") { should_not cmp 200 }
+					end
+				
+					http(repository_tag_manifest, ssl_verify: false).body do |manifests_response|
+						fsLayers = JSON.parse(tags_response)["fsLayers"]
 						
-						describe http(registry_base + "/" + repository + "/blobs/sha256:" + image_blob, ssl_verify: false).body do
-							its("status") { should_not cmp 200 }
+						fsLayers.each do |fsLayer|
+							image_blob = fsLayer['blobSum'].split(":")[1]
+							repository_blob = registry_base + "/" + repository + "/blobs/sha256:" + image_blob
+							
+							describe http(repository_blob, ssl_verify: false).body do
+								its("status") { should_not cmp 200 }
+							end
+							
 						end
-						
 					end
 				end
 			end
-		end
-	end	
-	
-	
-  end
-  
+		end	
+	end
+ 
 end
