@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'net/http'
 
 title 'Docker Regitry Security Assessment'
 
@@ -87,9 +88,9 @@ control 'registry-control-04' do
   title 'Verify images blobs download'
   desc 'Verify images blobs download'
   
-  registry_base = REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION
-  describe json(content: http(registry_base + "/_catalog", ssl_verify: false).body) do
-		its(['repositories', 1]){should cmp 'sfsdafasdfdsaf' }
+  response = Net::HTTP.get(REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT, "/" + API_VERSION)
+  describe command("echo " + response.code) do
+	its("output"){should cmp 'sfsdafasdfdsaf' }
   end
  
 end
