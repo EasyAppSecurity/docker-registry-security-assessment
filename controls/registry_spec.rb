@@ -106,7 +106,7 @@ control 'registry-control-04' do
 		repository_tag_manifest = URI(registry_base + "/" + repository + "/manifests/" + tag)
 		manifests_response = Net::HTTP.get(repository_tag_manifest)
 		
-		fsLayers = manifests_response["fsLayers"]
+		fsLayers = JSON.parse(manifests_response)["fsLayers"]
 		fsLayers.each do |fsLayer|
 			image_blob = fsLayer['blobSum'].split(":")[1]
 			repository_blob_url = registry_base + "/" + repository + "/blobs/sha256:" + image_blob
