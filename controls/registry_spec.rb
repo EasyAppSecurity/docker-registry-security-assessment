@@ -89,16 +89,11 @@ control 'registry-control-04' do
   
   registry_base = REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION
   json(content: http(registry_base + "/_catalog", ssl_verify: false).body) do |repositories_response|
-	repositories = repositories_response["repositories"]
 	
-		repositories.each do |repository|
-			repository_tags_list = registry_base + "/" + repository + "/tags/list"
-			
-			describe command("echo " + repository_tags_list) do
+			describe command("echo " + repositories_response["repositories"][0]) do
 				its("output") { should cmp "123123" }
 			end
 			
-		end	
 	end
  
 end
