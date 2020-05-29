@@ -1,4 +1,4 @@
-Postgre installation Security Assessment InSpec profile
+Docker Registry Security Assessment InSpec profile
 
 ## Standalone Usage
 
@@ -6,7 +6,7 @@ Postgre installation Security Assessment InSpec profile
 
 2. Clone the repository
 ```
-$ git clone https://github.com/EasyAppSec/docker-registry-security-assessment
+$ git clone https://github.com/EasyAppSecurity/docker-registry-security-assessment
 
 ```
 3. Create properties .yml file in docker-registry-security-assessment/attributes folder, where specify Docker Registry settings. 
