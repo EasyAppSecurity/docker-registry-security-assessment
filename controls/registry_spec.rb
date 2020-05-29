@@ -46,7 +46,8 @@ control 'registry-control-01' do
   
   describe.one do
 	  describe http("http://" + REGISTRY_HOST + ":" + REGISTRY_PORT) do
-		its("status") { should_not cmp(200).or cmp(401) }
+		its("status") { should_not cmp 200 }
+		its("status") { should_not cmp 401 }
 	  end
 	  
 	  describe http("http://" + REGISTRY_HOST + ":" + REGISTRY_PORT, max_redirects: 0) do
@@ -62,7 +63,8 @@ control 'registry-control-02' do
   desc 'Verify API version endpoint authentication'
   
   describe http(REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION + "/", ssl_verify: true) do
-	its("status") { should_not cmp(200).or cmp(404) }
+	its("status") { should_not cmp 200 }
+	its("status") { should_not cmp 404 }
   end
   
 end
@@ -72,7 +74,7 @@ control 'registry-control-03' do
   title 'Verify repository Catalog endpoint authentication'
   desc 'Verify repository Catalog endpoint authentication'
   
-  describe http(REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION + "/_catalog", ssl_verify: true) do
+  describe http(REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION + "/_catalog", ssl_verify: false) do
 	its("status") { should_not cmp 200 }
   end
   
