@@ -67,7 +67,7 @@ control 'registry-control-02' do
   api_version = REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION + "/"
   describe http(api_version, ssl_verify: true) do
 	its("status") { should_not cmp 200 }
-	its("status") { should_not cmp 404 }
+	its("status") { should_not cmp 401 }
   end
   
 end
@@ -94,31 +94,37 @@ control 'registry-control-04' do
   catalog_uri = URI(registry_base + "/_catalog")
   catalog_response = Net::HTTP.get(catalog_uri)
   
-  repositories = JSON.parse(catalog_response)["repositories"]
-  repositories.each do |repository|
-	
+  if catalog_response.code == '200'
+  
+	repositories = JSON.parse(catalog_response)["repositories"]
+	repositories.each do |repository|
+		
 	repository_tags_list_uri = URI(registry_base + "/" + repository + "/tags/list")
 	tags_response = Net::HTTP.get(repository_tags_list_uri)
 	
-	tags = JSON.parse(tags_response)["tags"]
-	tags.each do |tag|
-		
-		repository_tag_manifest = URI(registry_base + "/" + repository + "/manifests/" + tag)
-		manifests_response = Net::HTTP.get(repository_tag_manifest)
-		
-		fsLayers = JSON.parse(manifests_response)["fsLayers"]
-		fsLayers.each do |fsLayer|
-			image_blob = fsLayer['blobSum'].split(":")[1]
-			repository_blob_url = registry_base + "/" + repository + "/blobs/sha256:" + image_blob
-			
-			describe http(repository_blob_url, ssl_verify: false) do
-				its("status") { should_not cmp 200 }
+	if tags_response.code == '200'
+	
+		tags = JSON.parse(tags_response)["tags"]
+			tags.each do |tag|
+				
+				repository_tag_manifest = URI(registry_base + "/" + repository + "/manifests/" + tag)
+				manifests_response = Net::HTTP.get(repository_tag_manifest)
+				
+				if manifests_response.code == '200'
+					fsLayers = JSON.parse(manifests_response)["fsLayers"]
+					fsLayers.each do |fsLayer|
+						image_blob = fsLayer['blobSum'].split(":")[1]
+						repository_blob_url = registry_base + "/" + repository + "/blobs/sha256:" + image_blob
+						
+						describe http(repository_blob_url, ssl_verify: false) do
+							its("status") { should_not cmp 200 }
+						end
+					end
+				end
 			end
-			
 		end
 		
 	end
-	
   end
    
 end
