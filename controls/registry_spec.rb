@@ -107,7 +107,7 @@ control 'registry-control-04' do
   
   if catalog_response.code == '200'
   
-	repositories = JSON.parse(catalog_response)["repositories"]
+	repositories = JSON.parse(catalog_response.body)["repositories"]
 	repositories.each do |repository|
 		
 	repository_tags_list_relative_path = registry_api_base + "/" + repository + "/tags/list"
@@ -115,14 +115,14 @@ control 'registry-control-04' do
 	
 	if tags_response.code == '200'
 	
-		tags = JSON.parse(tags_response)["tags"]
+		tags = JSON.parse(tags_response.body)["tags"]
 			tags.each do |tag|
 				
 				repository_tag_manifest_relative_path = registry_api_base + "/" + repository + "/manifests/" + tag
 				manifests_response = registry_http.request(Net::HTTP::Get.new(repository_tag_manifest_relative_path))
 				
 				if manifests_response.code == '200'
-					fsLayers = JSON.parse(manifests_response)["fsLayers"]
+					fsLayers = JSON.parse(manifests_response.body)["fsLayers"]
 					fsLayers.each do |fsLayer|
 						image_blob = fsLayer['blobSum'].split(":")[1]
 						repository_blob_url = registry_base_addr + registry_api_base + "/" + repository + "/blobs/sha256:" + image_blob
