@@ -17,6 +17,7 @@
 #
 require 'net/http'
 require 'json'
+require 'uri'
 
 title 'Docker Regitry Security Assessment'
 
@@ -89,32 +90,42 @@ control 'registry-control-04' do
   title 'Verify images blobs download'
   desc 'Verify images blobs download'
   
-  registry_base = REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT + "/" + API_VERSION
+  registry_base_addr = REGISTRY_SCHEMA + "://" + REGISTRY_HOST + ":" + REGISTRY_PORT
   
-  catalog_uri = URI(registry_base + "/_catalog")
-  catalog_response = Net::HTTP.get(catalog_uri)
+  registry_uri = URI.parse(registry_base_addr) 
+  registry_http = Net::HTTP.new(registry_uri.host, registry_uri.port)
+  
+  if (REGISTRY_SCHEMA == 'http')
+	registry_http.use_ssl = false
+  end
+  registry_http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+  
+  registry_api_base = "/" + API_VERSION
+  
+  catalog_relative_path = registry_api_base + "/_catalog"
+  catalog_response = registry_http.request(Net::HTTP::Get.new(catalog_relative_path))
   
   if catalog_response.code == '200'
   
 	repositories = JSON.parse(catalog_response)["repositories"]
 	repositories.each do |repository|
 		
-	repository_tags_list_uri = URI(registry_base + "/" + repository + "/tags/list")
-	tags_response = Net::HTTP.get(repository_tags_list_uri)
+	repository_tags_list_relative_path = registry_api_base + "/" + repository + "/tags/list"
+	tags_response = registry_http.request(Net::HTTP::Get.new(repository_tags_list_relative_path))
 	
 	if tags_response.code == '200'
 	
 		tags = JSON.parse(tags_response)["tags"]
 			tags.each do |tag|
 				
-				repository_tag_manifest = URI(registry_base + "/" + repository + "/manifests/" + tag)
-				manifests_response = Net::HTTP.get(repository_tag_manifest)
+				repository_tag_manifest_relative_path = registry_api_base + "/" + repository + "/manifests/" + tag
+				manifests_response = registry_http.request(Net::HTTP::Get.new(repository_tag_manifest_relative_path))
 				
 				if manifests_response.code == '200'
 					fsLayers = JSON.parse(manifests_response)["fsLayers"]
 					fsLayers.each do |fsLayer|
 						image_blob = fsLayer['blobSum'].split(":")[1]
-						repository_blob_url = registry_base + "/" + repository + "/blobs/sha256:" + image_blob
+						repository_blob_url = registry_base_addr + registry_api_base + "/" + repository + "/blobs/sha256:" + image_blob
 						
 						describe http(repository_blob_url, ssl_verify: false) do
 							its("status") { should_not cmp 200 }
